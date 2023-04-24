@@ -52,7 +52,7 @@ func desiredIngresses(_ context.Context, params Params) *networkingv1.Ingress {
 	paths := make([]networkingv1.HTTPIngressPath, len(ports))
 	for i, p := range ports {
 		paths[i] = networkingv1.HTTPIngressPath{
-			Path:     "/" + p.Name,
+			Path:     "/" + p.Name + "(/|$)(.*)",
 			PathType: &pathType,
 			Backend: networkingv1.IngressBackend{
 				Service: &networkingv1.IngressServiceBackend{
@@ -65,6 +65,8 @@ func desiredIngresses(_ context.Context, params Params) *networkingv1.Ingress {
 			},
 		}
 	}
+	rewriteAnnotationKey := *params.Instance.Spec.Ingress.IngressClassName + ".ingress.kubernetes.io/rewrite-target"
+	params.Instance.Spec.Ingress.Annotations[rewriteAnnotationKey] = "/$2"
 
 	return &networkingv1.Ingress{
 		ObjectMeta: metav1.ObjectMeta{
